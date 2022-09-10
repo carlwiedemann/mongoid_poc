@@ -35,6 +35,9 @@ lambda do
   # Cleanup.
   Author.destroy_all
 
+  ############
+  # EXERCISE #
+  ############
   # Try to persist an author.
   my_author = Author.new
   my_author.first_name = 'Martin'
@@ -44,6 +47,10 @@ lambda do
   pp my_author.save!
   pp my_author
 
+  ############
+  # EXERCISE #
+  ############
+  # Persist an address.
   my_first_address = Address.new
   my_first_address.street_primary = '3902 Midsummer Ln S'
   my_first_address.city = 'Colorado Springs'
@@ -59,6 +66,13 @@ lambda do
   pp my_author.save!
   pp my_author
 
+  # Observe the relations.
+  pp my_author.addresses
+  pp my_first_address.author
+
+  ############
+  # EXERCISE #
+  ############
   # Ok, let's actually see the persistence behavior that we expect.
   my_second_address = Address.new
   my_second_address.street_primary = '2233 Collegiate Dr'
