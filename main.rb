@@ -7,7 +7,6 @@ Mongoid.load!("./mongoid.yml", :development)
 #
 class Author
   include Mongoid::Document
-  include Mongoid::Timestamps
 
   field :first_name, type: String
   field :last_name, type: String
@@ -17,7 +16,6 @@ end
 
 class Address
   include Mongoid::Document
-  include Mongoid::Timestamps
 
   field :street_primary, type: String
   field :street_secondary, type: String
@@ -25,6 +23,9 @@ class Address
   field :province, type: String
   field :postal_code, type: String
   field :country, type: String
+
+  # This method is necessary for backreference detection.
+  embedded_in :author
 end
 
 ##
@@ -43,9 +44,7 @@ lambda do
   my_author.first_name = 'Martin'
   my_author.last_name = 'Fowler'
 
-  pp my_author
-  pp my_author.save!
-  pp my_author
+  my_author.save!
 
   ############
   # EXERCISE #
@@ -62,9 +61,7 @@ lambda do
     my_first_address
   ]
 
-  pp my_author
-  pp my_author.save!
-  pp my_author
+  my_author.save!
 
   # Observe the relations.
   pp my_author.addresses
@@ -85,5 +82,6 @@ lambda do
   my_author.addresses = [
     my_second_address
   ]
+
 
 end.call
