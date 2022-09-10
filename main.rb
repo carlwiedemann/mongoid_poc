@@ -3,25 +3,31 @@ Bundler.require(:default)
 Mongoid.load!("./mongoid.yml", :development)
 
 ##
-# Author class.
+# Person class.
 #
-class Author
+class Person
   include Mongoid::Document
 
   field :first_name, type: String
   field :last_name, type: String
 
-  # Let's look at using relations in different collections.
-  # Adding 'dependent means it will be destroyed if it is abandoned'
-  has_many :addresses, dependent: :destroy
-
-  # Alternatively, how about relations in the same collection
-  # embeds_many :addresses
-
-  # How about tags?
-  has_and_belongs_to_many :tags
+  embeds_one :address, as: :addressable
 end
 
+##
+# Business class.
+#
+class Business
+  include Mongoid::Document
+
+  field :name, type: String
+
+  embeds_one :address, as: :addressable
+end
+
+##
+# Address class.
+#
 class Address
   include Mongoid::Document
 
@@ -32,23 +38,7 @@ class Address
   field :postal_code, type: String
   field :country, type: String
 
-  # For different collections.
-  belongs_to :author
-
-  # For same collection
-  # embedded_in :author
-
-  # How about tags?
-  has_and_belongs_to_many :tags
-end
-
-class Tag
-  include Mongoid::Document
-
-  field :name, type: String
-
-  has_and_belongs_to_many :authors
-  has_and_belongs_to_many :addresses
+  embedded_in :addressable
 end
 
 ##
@@ -57,26 +47,22 @@ end
 lambda do
 
   # Cleanup.
-  Author.destroy_all
-  Address.destroy_all
-  Tag.destroy_all
+  Person.destroy_all
+  Business.destroy_all
 
   ############
   # EXERCISE #
   ############
-  # Try to persist an author.
-  my_author = Author.new
-  my_author.first_name = 'Martin'
-  my_author.last_name = 'Fowler'
+  my_person = Person.new
+  my_person.first_name = 'Martin'
+  my_person.last_name = 'Fowler'
 
-  my_first_tag = Tag.new
-  my_first_tag.name = 'apple'
-  my_first_tag.save!
+  my_person.save!
 
-  my_author.tags << my_first_tag
-  my_author.save!
+  my_business = Business.new
+  my_business.name = 'Spalding'
 
-  pp my_author
+  my_business.save!
 
   ############
   # EXERCISE #
@@ -89,21 +75,30 @@ lambda do
   my_first_address.postal_code = '80917'
   my_first_address.country = 'US'
 
-  my_second_tag = Tag.new
-  my_second_tag.name = 'orange'
-  my_second_tag.save!
-
-  my_first_address.tags << my_second_tag
-
-  my_author.addresses = [
-    my_first_address
-  ]
+  my_person.address = my_first_address
 
   # This appears to save everything.
-  my_author.save!
+  my_person.save!
+
+  # Persist an address.
+  my_second_address = Address.new
+  my_second_address.street_primary = '2233 Collegiate Dr'
+  my_second_address.city = 'Colorado Springs'
+  my_second_address.province = 'Colorado'
+  my_second_address.postal_code = '80918'
+  my_second_address.country = 'US'
+
+  my_business.address = my_second_address
+
+  # This appears to save everything.
+  my_business.save!
 
   # Observe the relations.
-  pp my_author.addresses
-  pp my_first_address.author
+  pp my_person.address
+  pp my_first_address.addressable
+
+  # Observe the relations.
+  pp my_business.address
+  pp my_second_address.addressable
 
 end.call
