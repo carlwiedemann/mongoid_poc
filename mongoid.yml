@@ -1,0 +1,12 @@
+options: &default_options
+  connect_timeout: 15
+  socket_timeout: 15
+  server_selection_timeout: 15
+  max_pool_size: 5
+
+development:
+  clients:
+    default:
+      uri: mongodb://0.0.0.0:27017/mongoid_poc
+      options:
+        <<: *default_options
