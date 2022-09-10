@@ -23,7 +23,7 @@ GEM
       thread_safe (~> 0.1)
 
 PLATFORMS
-  x86_64-darwin-21
+  ruby
 
 DEPENDENCIES
   mongoid (~> 6.4.8)
