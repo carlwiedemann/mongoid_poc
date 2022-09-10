@@ -11,7 +11,8 @@ class Author
   field :first_name, type: String
   field :last_name, type: String
 
-  has_many :addresses
+  # Adding 'dependent means it will be destroyed if it is abandoned'
+  has_many :addresses, dependent: :destroy
 end
 
 class Address
@@ -23,6 +24,8 @@ class Address
   field :province, type: String
   field :postal_code, type: String
   field :country, type: String
+
+  belongs_to :author
 end
 
 ##
@@ -32,6 +35,7 @@ lambda do
 
   # Cleanup.
   Author.destroy_all
+  # Address.destroy_all
 
   ############
   # EXERCISE #
@@ -53,6 +57,9 @@ lambda do
   my_first_address.province = 'Colorado'
   my_first_address.postal_code = '80917'
   my_first_address.country = 'US'
+
+  # Does this need to be saved first?
+  # my_first_address.save!
 
   my_author.addresses = [
     my_first_address
