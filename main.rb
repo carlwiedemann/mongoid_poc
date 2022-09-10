@@ -11,7 +11,7 @@ class Author
   field :first_name, type: String
   field :last_name, type: String
 
-  embeds_many :addresses
+  has_many :addresses
 end
 
 class Address
@@ -23,9 +23,6 @@ class Address
   field :province, type: String
   field :postal_code, type: String
   field :country, type: String
-
-  # This method is necessary for backreference detection.
-  embedded_in :author
 end
 
 ##
