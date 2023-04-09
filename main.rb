@@ -38,7 +38,9 @@ class Address
   field :postal_code, type: String
   field :country, type: String
 
-  embedded_in :addressable
+  embedded_in :addressable, polymorphic: true
+
+  index "candidate_employment_histories._id" => 1
 end
 
 ##
@@ -100,5 +102,7 @@ lambda do
   # Observe the relations.
   pp my_business.address
   pp my_second_address.addressable
+
+  pp Address.index_specifications
 
 end.call
