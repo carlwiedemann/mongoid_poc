@@ -2,32 +2,15 @@ require 'bundler'
 Bundler.require(:default)
 Mongoid.load!("./mongoid.yml", :development)
 
-##
-# Person class.
-#
 class Person
   include Mongoid::Document
 
   field :first_name, type: String
   field :last_name, type: String
 
-  embeds_one :address, as: :addressable
+  has_one :address, autosave: false
 end
 
-##
-# Business class.
-#
-class Business
-  include Mongoid::Document
-
-  field :name, type: String
-
-  embeds_one :address, as: :addressable
-end
-
-##
-# Address class.
-#
 class Address
   include Mongoid::Document
 
@@ -38,71 +21,39 @@ class Address
   field :postal_code, type: String
   field :country, type: String
 
-  embedded_in :addressable, polymorphic: true
-
-  index "candidate_employment_histories._id" => 1
+  belongs_to :person
 end
 
-##
-# Main.
-#
-lambda do
+# 1. Create an instance of a `Person` document.
+my_person = Person.new
+my_person.first_name = 'Martin'
+my_person.last_name = 'Fowler'
 
-  # Cleanup.
-  Person.destroy_all
-  Business.destroy_all
+# 2. Persist the `Person` instance to disk.
+my_person.save!
 
-  ############
-  # EXERCISE #
-  ############
-  my_person = Person.new
-  my_person.first_name = 'Martin'
-  my_person.last_name = 'Fowler'
+# 3. Create an instance of an `Address` document.
+my_address = Address.new
+my_address.street_primary = '3902 Midsummer Ln S'
+my_address.city = 'Colorado Springs'
+my_address.province = 'Colorado'
+my_address.postal_code = '80917'
+my_address.country = 'US'
 
-  my_person.save!
+# 4. Set the `Address` instance as a child object of the `Person` instance.
+my_person.address = my_address
 
-  my_business = Business.new
-  my_business.name = 'Spalding'
+# 5. At this point, I would expect that the `Person` instance that was persisted to disk in step (2) above does not
+# yet contain any `Address` child document also persisted to disk, because we have only assigned the `Address`
+# instance in memory, it has not been explicitly persisted. Therefore, I would expect it would be necessary to actually
+# call `my_person.save!` in order to persist the `Address` as a child document.
 
-  my_business.save!
+# my_person.save! # Not calling this, on purpose.
 
-  ############
-  # EXERCISE #
-  ############
-  # Persist an address.
-  my_first_address = Address.new
-  my_first_address.street_primary = '3902 Midsummer Ln S'
-  my_first_address.city = 'Colorado Springs'
-  my_first_address.province = 'Colorado'
-  my_first_address.postal_code = '80917'
-  my_first_address.country = 'US'
+# 6. Below we note that the association *was* persisted to disk, despite never being saved. I would expect this line to
+# print nil, but it instead prints an instance of the address record, and I confirmed that the record was written using
+# Mongodb Compass.
+pp my_person.reload.address
 
-  my_person.address = my_first_address
-
-  # This appears to save everything.
-  my_person.save!
-
-  # Persist an address.
-  my_second_address = Address.new
-  my_second_address.street_primary = '2233 Collegiate Dr'
-  my_second_address.city = 'Colorado Springs'
-  my_second_address.province = 'Colorado'
-  my_second_address.postal_code = '80918'
-  my_second_address.country = 'US'
-
-  my_business.address = my_second_address
-
-  # This appears to save everything.
-  my_business.save!
-
-  # Observe the relations.
-  pp my_person.address
-  pp my_first_address.addressable
-
-  # Observe the relations.
-  pp my_business.address
-  pp my_second_address.addressable
-
-  pp Address.index_specifications
-
-end.call
+# This behavior is consistent regardless of whether the association is embedded or non-embedded, and regardless of the
+# value of the `autosave` option.
