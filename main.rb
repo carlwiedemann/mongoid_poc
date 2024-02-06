@@ -22,6 +22,14 @@ class Address
   field :country, type: String
 
   belongs_to :person
+
+  def ==(other)
+    if other.is_a?(Address)
+      other&.country == country
+    end
+
+    false
+  end
 end
 
 # 1. Create an instance of a `Person` document.
@@ -43,17 +51,23 @@ my_address.country = 'US'
 # 4. Set the `Address` instance as a child object of the `Person` instance.
 my_person.address = my_address
 
-# 5. At this point, I would expect that the `Person` instance that was persisted to disk in step (2) above does not
-# yet contain any `Address` child document also persisted to disk, because we have only assigned the `Address`
-# instance in memory, it has not been explicitly persisted. Therefore, I would expect it would be necessary to actually
-# call `my_person.save!` in order to persist the `Address` as a child document.
-
-# my_person.save! # Not calling this, on purpose.
-
-# 6. Below we note that the association *was* persisted to disk, despite never being saved. I would expect this line to
-# print nil, but it instead prints an instance of the address record, and I confirmed that the record was written using
-# Mongodb Compass.
+# 5. Let us confirm that the address was persisted to disk.
 pp my_person.reload.address
+pp my_person.reload
 
-# This behavior is consistent regardless of whether the association is embedded or non-embedded, and regardless of the
-# value of the `autosave` option.
+# 6. However, let us now create a separate address object, which is identical aside from the city name.
+my_address2 = Address.new
+my_address2.street_primary = '3902 Midsummer Ln S'
+my_address2.city = 'Denver'
+my_address2.province = 'Colorado'
+my_address2.postal_code = '80917'
+my_address2.country = 'US'
+
+# 7. We will set this as the value.
+my_person.address = my_address2
+
+# 8. However, because we have overridden equality `#==` we now see that in mongoid the document was not persisted.
+# But for ActiveRecord, it is indeed persisted, because it does not check equality.
+pp my_person.reload.address
+pp my_person.reload
+
